@@ -47,11 +47,7 @@ while True:
             ).encode("utf-8"),
         )
     ) as response:
-        messages.append(
-            json.loads(
-                response.read().decode("utf-8"),
-            )["choices"][0]["message"]
-        )
+        messages.append(json.loads(response.read().decode("utf-8"))["choices"][0]["message"])
         if not messages[-1].get("tool_calls"):
             print(f"{messages[-1]['content']}")
             break
@@ -59,9 +55,7 @@ while True:
             {
                 "role": "tool",
                 "tool_call_id": tool_call["id"],
-                "content": subprocess.getoutput(
-                    **json.loads(tool_call["function"]["arguments"])
-                ),
+                "content": subprocess.getoutput(**json.loads(tool_call["function"]["arguments"])),
             }
             for tool_call in messages[-1]["tool_calls"]
         )
