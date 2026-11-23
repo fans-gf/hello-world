@@ -28,7 +28,6 @@ while True:
             headers={
                 "Content-Type": "application/json",
                 "Authorization": f"Bearer {args.api_key or os.environ[args.api_key_env]}",
-                "User-Agent": args.user_agent,
             },
             data=json.dumps(
                 {
