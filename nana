@@ -6,7 +6,7 @@ import os
 import subprocess
 import urllib.request
 
-parser = argparse.ArgumentParser(description="run nano agent")
+parser = argparse.ArgumentParser(description="run nano agent on openai chat completion compatiable api")
 parser.add_argument("input")
 parser.add_argument("-a", "--api-endpoint")
 parser.add_argument("-b", "--base-url", default="openrouter.ai/api")
