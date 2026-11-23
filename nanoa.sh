@@ -9,12 +9,11 @@ import urllib.request
 parser = argparse.ArgumentParser()
 parser.add_argument("input")
 parser.add_argument("-a", "--api-endpoint")
-parser.add_argument("-b", "--base-url", default="integrate.api.nvidia.com")
+parser.add_argument("-b", "--base-url", default="openrouter.ai/api")
 parser.add_argument("-k", "--api-key")
-parser.add_argument("-e", "--api-key-env", default="NVIDIA_API_KEY")
-parser.add_argument("-m", "--model", default="nvidia/nemotron-3.5-super-vl-120b-a12b")
+parser.add_argument("-e", "--api-key-env", default="OPENROUTER_API_KEY")
+parser.add_argument("-m", "--model", default="openrouter/free")
 parser.add_argument("-r", "--reasoning-effort", default="max")
-parser.add_argument("-u", "--user-agent", default="opencode/cli 2.1.4") # ?TODO! openrouter doesn't care it any more.
 args = parser.parse_args()
 
 messages = [
