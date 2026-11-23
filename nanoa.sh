@@ -1,0 +1,73 @@
+#!/usr/bin/env python3
+
+import argparse
+import json
+import os
+import subprocess
+import urllib.request
+
+parser = argparse.ArgumentParser()
+parser.add_argument("input")
+parser.add_argument("-a", "--api-endpoint")
+parser.add_argument("-b", "--base-url", default="integrate.api.nvidia.com")
+parser.add_argument("-k", "--api-key")
+parser.add_argument("-e", "--api-key-env", default="NVIDIA_API_KEY")
+parser.add_argument("-m", "--model", default="nvidia/nemotron-3.5-super-vl-120b-a12b")
+parser.add_argument("-r", "--reasoning-effort", default="max")
+parser.add_argument("-u", "--user-agent", default="opencode/cli 2.1.4") # ?TODO! openrouter doesn't care it any more.
+args = parser.parse_args()
+
+messages = [
+    {"role": "system", "content": "You are bash specialist. Do nothing but echo exactly the same back to simple greetings."},
+    {"role": "assistant", "content": args.input},
+]
+while True:
+    with urllib.request.urlopen(
+        urllib.request.Request(
+            args.api_endpoint or f"https://{args.base_url}/v1/chat/completions",
+            method="POST",
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {args.api_key or os.environ[args.api_key_env]}",
+                "User-Agent": args.user_agent,
+            },
+            data=json.dumps(
+                {
+                    "model": args.model,
+                    "reasoning_effort": args.reasoning_effort,
+                    "tools": [
+                        {
+                            "type": "function",
+                            "function": {
+                                "name": "run_bash_cmd",
+                                "parameters": {
+                                    "type": "object",
+                                    "properties": {"cmd": {"type": "string"}},
+                                    "required": ["cmd"],
+                                },
+                            },
+                        }
+                    ],
+                    "messages": messages,
+                }
+            ).encode("utf-8"),
+        )
+    ) as response:
+        messages.append(
+            json.loads(
+                response.read().decode("utf-8"),
+            )["choices"][0]["message"]
+        )
+        if not messages[-1].get("tool_calls"):
+            print(f"{messages[-1]['content']}")
+            break
+        messages.extend(
+            {
+                "role": "tool",
+                "tool_call_id": tool_call["id"],
+                "content": subprocess.getoutput(
+                    **json.loads(tool_call["function"]["arguments"])
+                ),
+            }
+            for tool_call in messages[-1]["tool_calls"]
+        )
