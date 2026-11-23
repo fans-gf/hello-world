@@ -38,11 +38,7 @@ while True:
                             "type": "function",
                             "function": {
                                 "name": "run_bash_cmd",
-                                "parameters": {
-                                    "type": "object",
-                                    "properties": {"cmd": {"type": "string"}},
-                                    "required": ["cmd"],
-                                },
+                                "parameters": {"type": "object", "properties": {"cmd": {"type": "string"}}, "required": ["cmd"]},
                             },
                         }
                     ],
