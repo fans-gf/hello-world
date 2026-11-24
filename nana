@@ -6,7 +6,9 @@ import os
 import subprocess
 import urllib.request
 
-parser = argparse.ArgumentParser(usage="nana -h", description="run nano agent on chat completion endpoint")
+parser = argparse.ArgumentParser(
+    usage="nana -h", description="run nano agent on chat completion endpoint"
+)
 parser.add_argument("input")
 parser.add_argument("-a", "--api-endpoint")
 parser.add_argument("-b", "--base-url", default="openrouter.ai/api")
@@ -16,8 +18,23 @@ parser.add_argument("-m", "--model", default="openrouter/free")
 parser.add_argument("-r", "--reasoning-effort", default="max")
 args = parser.parse_args()
 
+run_bash_cmd = lambda cmd: subprocess.getoutput(cmd)
+run_bash_cmd_tool = {
+    "type": "function",
+    "function": {
+        "name": "run_bash_cmd",
+        "parameters": {
+            "type": "object",
+            "properties": {"cmd": {"type": "string"}},
+            "required": ["cmd"],
+        },
+    },
+}
 messages = [
-    {"role": "system", "content": "You are bash specialist. Do nothing but echo exactly the same back to simple greetings."},
+    {
+        "role": "system",
+        "content": "You are bash specialist. Echo exactly the same back to simple greetings.",
+    },
     {"role": "assistant", "content": args.input},
 ]
 while True:
@@ -33,15 +50,7 @@ while True:
                 {
                     "model": args.model,
                     "reasoning_effort": args.reasoning_effort,
-                    "tools": [
-                        {
-                            "type": "function",
-                            "function": {
-                                "name": "run_bash_cmd",
-                                "parameters": {"type": "object", "properties": {"cmd": {"type": "string"}}, "required": ["cmd"]},
-                            },
-                        }
-                    ],
+                    "tools": [run_bash_cmd_tool],
                     "messages": messages,
                 }
             ).encode("utf-8"),
@@ -53,11 +62,14 @@ while True:
         if not tool_calls:
             print(f"{message['content']}")
             break
-        messages.extend(
-            {
-                "role": "tool",
-                "tool_call_id": tool_call["id"],
-                "content": subprocess.getoutput(**json.loads(tool_call["function"]["arguments"])),
-            }
-            for tool_call in tool_calls
-        )
+        for tool_call in tool_calls:
+            function = tool_call["function"]
+            messages.append(
+                {
+                    "role": "tool",
+                    "tool_call_id": tool_call["id"],
+                    "content": globals()[function["name"]](
+                        **json.loads(function["arguments"])
+                    ),
+                }
+            )
