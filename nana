@@ -6,9 +6,7 @@ import os
 import subprocess
 import urllib.request
 
-parser = argparse.ArgumentParser(
-    usage="nana -h", description="run nano agent on chat completion endpoint"
-)
+parser = argparse.ArgumentParser(usage="nana -h", description="run nano agent on chat completion endpoint")
 parser.add_argument("input")
 parser.add_argument("-a", "--api-endpoint")
 parser.add_argument("-b", "--base-url", default="openrouter.ai/api")
@@ -23,18 +21,11 @@ run_bash_cmd_tool = {
     "type": "function",
     "function": {
         "name": "run_bash_cmd",
-        "parameters": {
-            "type": "object",
-            "properties": {"cmd": {"type": "string"}},
-            "required": ["cmd"],
-        },
+        "parameters": {"type": "object", "properties": {"cmd": {"type": "string"}}, "required": ["cmd"]},
     },
 }
 messages = [
-    {
-        "role": "system",
-        "content": "You are bash specialist. Echo exactly the same back to simple greetings.",
-    },
+    {"role": "system", "content": "You are bash specialist. Echo exactly the same back to simple greetings."},
     {"role": "assistant", "content": args.input},
 ]
 while True:
@@ -68,8 +59,6 @@ while True:
                 {
                     "role": "tool",
                     "tool_call_id": tool_call["id"],
-                    "content": globals()[function["name"]](
-                        **json.loads(function["arguments"])
-                    ),
+                    "content": globals()[function["name"]](**json.loads(function["arguments"])),
                 }
             )
