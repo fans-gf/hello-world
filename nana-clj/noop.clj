@@ -52,7 +52,7 @@
         (recur (into (conj messages message) (mapv run-tool-call tool-calls)))))))
 
 (def cli-options
-  [["-p" "--prompt PROMPT"]
+  [["-p" "--prompt PROMPT" "chat once."]
    ["-a" "--api-endpoint API_ENDPOINT"]
    ["-b" "--base-url BASE_URL" :default "openrouter.ai/api"]
    ["-k" "--api-key API_KEY"]
