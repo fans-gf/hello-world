@@ -6,8 +6,10 @@
             [clojure.tools.cli :as cli]))
 
 (defn run-bash-cmd [{:keys [cmd]}]
-  (let [{:keys [out err]} (sh/sh "bash" "-lc" cmd)]
-    (str out err)))
+  (let [{:keys [exit out err]} (sh/sh "bash" "-lc" cmd)]
+    (if (zero? exit)
+      (str out err)
+      (str "exit_code=" exit "\n" out err))))
 
 (def run-bash-cmd-tool
   {:type "function"
