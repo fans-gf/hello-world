@@ -38,12 +38,17 @@
   {:role "system"
    :content "You are bash specialist. Echo exactly the same back to simple greetings."})
 
-(defn run-agent [prompt options]
-  (loop [messages [system-message {:role "user" :content prompt}]]
+(defn input []
+  (print "> ")
+  (flush)
+  (read-line))
+
+(defn run-agent [options]
+  (loop [messages [system-message {:role "user" :content (input)}]]
     (let [message (-> messages ((partial chat options)) :body :choices first :message)
           tool-calls (:tool_calls message)]
       (if (not (seq tool-calls))
-        (do (println (:content message)))
+        (do (println "< " (:content message)))
         (recur (into (conj messages message) (mapv run-tool-call tool-calls)))))))
 
 (def cli-options
@@ -58,11 +63,6 @@
 (defn usage [summary]
   (str "Usage: clj -M -m noop [options] <prompt>\n\nOptions:\n" summary))
 
-(defn input []
-  (print "> ")
-  (flush)
-  (read-line))
-
 (defn -main [& args]
   (let [{:keys [options errors summary]} (cli/parse-opts args cli-options)
         help (usage summary)]
@@ -76,5 +76,6 @@
             (println)
             (println help))
           (System/exit 2)))
+    (println "[Press ctrl-c to stop.] ")
     (while true
-      (run-agent (input) options))))
+      (run-agent options))))
