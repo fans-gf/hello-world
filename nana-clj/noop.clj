@@ -30,18 +30,19 @@
 
 (defn chat [{:keys [api-endpoint base-url api-key api-key-env model reasoning-effort]}
             messages]
-  (let [{:keys [body]}
-        (http/post
-         (or api-endpoint (str "https://" base-url "/v1/chat/completions"))
-         {:headers {:Authorization (str "Bearer " (or api-key (System/getenv api-key-env)))}
-          :cookie-policy :none
-          :content-type :json
-          :json-opts {:key-fn ->snake-str}
-          :form-params {:model model
-                        :reasoning-effort reasoning-effort
-                        :tools [run-bash-cmd-tool]
-                        :messages messages}})]
-    (json/parse-string body ->kebab-kw)))
+  (let [req-body {:model model
+                  :reasoning-effort reasoning-effort
+                  :tools [run-bash-cmd-tool]
+                  :messages messages}
+        req-body-str (json/generate-string req-body {:key-fn ->snake-str})
+        resp (http/post
+              (or api-endpoint (str "https://" base-url "/v1/chat/completions"))
+              {:headers {:Authorization (str "Bearer " (or api-key (System/getenv api-key-env)))}
+               :cookie-policy :none
+               :content-type :json
+               :body req-body-str})
+        resp-body-str (:body resp)]
+    (json/parse-string resp-body-str ->kebab-kw)))
 
 (def system-message
   {:role "system"
