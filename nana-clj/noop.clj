@@ -44,7 +44,7 @@
   (read-line))
 
 (defn run-agent [options]
-  (loop [messages [system-message {:role "user" :content (input)}]]
+  (loop [messages [system-message {:role "user" :content (or (:prompt options) (input))}]]
     (let [message (-> messages ((partial chat options)) :body :choices first :message)
           tool-calls (:tool_calls message)]
       (if (not (seq tool-calls))
@@ -52,7 +52,8 @@
         (recur (into (conj messages message) (mapv run-tool-call tool-calls)))))))
 
 (def cli-options
-  [["-a" "--api-endpoint API_ENDPOINT"]
+  [["-p" "--prompt PROMPT"]
+   ["-a" "--api-endpoint API_ENDPOINT"]
    ["-b" "--base-url BASE_URL" :default "openrouter.ai/api"]
    ["-k" "--api-key API_KEY"]
    ["-e" "--api-key-env API_KEY_ENV" :default "OPENROUTER_API_KEY"]
@@ -62,7 +63,7 @@
 
 (defn -main [& args]
   (let [{:keys [summary options errors]} (cli/parse-opts args cli-options)
-        usage (str "Usage: clj -M -m noop [options] <prompt>\n\nOptions:\n" summary)]
+        usage (str "Usage: clj -M -m noop [options]\n\nOptions:\n" summary)]
     (cond
       (:help options)
       (do (println usage)
@@ -70,5 +71,8 @@
       (seq errors)
       (do (binding [*out* *err*] (println (str/join "\n" errors) "\n\n" usage))
           (System/exit 2)))
-    (println "[Press ctrl-c to stop.]")
-    (while true (run-agent options))))
+    (if (:prompt options)
+      (do (run-agent options)
+          (System/exit 0))
+      (do (println "[Press ctrl-c to stop.]")
+          (while true (run-agent options))))))
