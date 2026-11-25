@@ -63,7 +63,9 @@
 
 (defn -main [& args]
   (let [{:keys [summary options errors]} (cli/parse-opts args cli-options)
-        usage (str "Usage: clj -M -m noop [options]\n\nOptions:\n" summary)]
+        usage (str "Run nano agent loop on chat completion endpoint.\n\n"
+                   "Usage: clj -M -m noop [options]\n\nOptions:\n"
+                   summary)]
     (cond
       (:help options)
       (do (println usage)
