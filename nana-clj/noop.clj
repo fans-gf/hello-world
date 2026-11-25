@@ -44,8 +44,9 @@
   (read-line))
 
 (defn run-agent [options]
-  (loop [messages [system-message {:role "user"
-                                   :content (or (:prompt options) (input))}]]
+  (loop [messages [system-message
+                   {:role "user"
+                    :content (or (:prompt options) (input))}]]
     (let [message (-> messages ((partial chat options)) :body :choices first :message)
           tool-calls (:tool_calls message)]
       (if (not (seq tool-calls))
