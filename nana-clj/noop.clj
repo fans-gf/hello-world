@@ -60,21 +60,18 @@
    ["-r" "--reasoning-effort REASONING_EFFORT" :default "max"]
    ["-h" "--help"]])
 
-(defn usage [summary]
-  (str "Usage: clj -M -m noop [options] <prompt>\n\nOptions:\n" summary))
-
 (defn -main [& args]
   (let [{:keys [summary options errors]} (cli/parse-opts args cli-options)
-        help (usage summary)]
+        usage (str "Usage: clj -M -m noop [options] <prompt>\n\nOptions:\n" summary)]
     (cond
       (:help options)
-      (do (println help)
+      (do (println usage)
           (System/exit 0))
       (seq errors)
       (do (binding [*out* *err*]
             (println (str/join "\n" errors))
             (println)
-            (println help))
+            (println usage))
           (System/exit 2)))
     (println "[Press ctrl-c to stop.]")
     (while true (run-agent options))))
