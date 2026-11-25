@@ -36,7 +36,8 @@
 
 (def system-message
   {:role "system"
-   :content "You are bash specialist. Echo exactly the same back to simple greetings."})
+   :content "You are bash specialist.
+   Echo exactly the same back to simple greetings."})
 
 (defn input []
   (print "> ")
@@ -44,7 +45,8 @@
   (read-line))
 
 (defn run-agent [options]
-  (loop [messages [system-message {:role "user" :content (or (:prompt options) (input))}]]
+  (loop [messages [system-message {:role "user"
+                                   :content (or (:prompt options) (input))}]]
     (let [message (-> messages ((partial chat options)) :body :choices first :message)
           tool-calls (:tool_calls message)]
       (if (not (seq tool-calls))
