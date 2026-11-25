@@ -64,7 +64,7 @@
   (str "Usage: clj -M -m noop [options] <prompt>\n\nOptions:\n" summary))
 
 (defn -main [& args]
-  (let [{:keys [options errors summary]} (cli/parse-opts args cli-options)
+  (let [{:keys [summary options errors]} (cli/parse-opts args cli-options)
         help (usage summary)]
     (cond
       (:help options)
