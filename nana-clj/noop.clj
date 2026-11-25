@@ -58,7 +58,7 @@
    ["-e" "--api-key-env API_KEY_ENV" :default "OPENROUTER_API_KEY"]
    ["-m" "--model MODEL" :default "openrouter/free"]
    ["-r" "--reasoning-effort REASONING_EFFORT" :default "max"]
-   ["-h" "--help" "Show help"]])
+   ["-h" "--help"]])
 
 (defn usage [summary]
   (str "Usage: clj -M -m noop [options] <prompt>\n\nOptions:\n" summary))
