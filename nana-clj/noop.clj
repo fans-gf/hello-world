@@ -56,7 +56,7 @@
    ["-h" "--help" "Show help"]])
 
 (defn usage [summary]
-  (str "Usage: clj -M -m nana [options] <prompt>\n\nOptions:\n" summary))
+  (str "Usage: clj -M -m noop [options] <prompt>\n\nOptions:\n" summary))
 
 (defn input []
   (print "> ")
