@@ -48,7 +48,7 @@
     (let [message (-> messages ((partial chat options)) :body :choices first :message)
           tool-calls (:tool_calls message)]
       (if (not (seq tool-calls))
-        (do (println "< " (:content message)))
+        (println "<" (:content message))
         (recur (into (conj messages message) (mapv run-tool-call tool-calls)))))))
 
 (def cli-options
