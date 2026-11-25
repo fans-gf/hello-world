@@ -76,11 +76,11 @@
       (do (println usage)
           (System/exit 0))
       errors
-      (do (binding [*out* *err*]
-            (println (str/join "\n" errors))
-            (println)
-            (println usage))
-          (System/exit 2))
+      (binding [*out* *err*]
+        (println (str/join "\n" errors))
+        (println)
+        (println usage)
+        (System/exit 2))
       (:prompt options)
       (do (run-agent options)
           (System/exit 0)))
