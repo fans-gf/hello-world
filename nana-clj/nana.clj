@@ -16,11 +16,11 @@
                            :properties {:cmd {:type "string"}}
                            :required ["cmd"]}}})
 
-(defn run-tool-call [{:keys [id function]}]
+(defn run-tool-call [{:keys [id] {:keys [name arguments]} :function}]
   {:role "tool"
-   :tool_call_id "id"
-   :content ((requiring-resolve (symbol "nana" (:name function)))
-             (json/parse-string (:arguments function) true))})
+   :tool_call_id id
+   :content ((requiring-resolve (symbol "nana" name))
+             (json/parse-string arguments true))})
 
 (defn chat [{:keys [api-endpoint base-url api-key api-key-env model reasoning-effort]} messages]
   (http/post
