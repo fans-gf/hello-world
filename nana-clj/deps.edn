@@ -1,6 +1,8 @@
 {:paths ["."]
  :deps
  {clj-http/clj-http {:mvn/version "3.13.1"}
-  cheshire/cheshire {:mvn/version "6.2.0"}
+  cheshire/cheshire {:mvn/version "6.2.1"}
+  hato/hato     {:mvn/version "1.0.0"}
+  camel-snake-kebab/camel-snake-kebab {:mvn/version "0.4.3"}
   org.clojure/tools.cli {:mvn/version "1.4.256"}}}
 

@@ -1,2 +1,4 @@
 .cpcache
 .*.swp
+.BAK
+.BAK.*
