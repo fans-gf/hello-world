@@ -9,7 +9,7 @@
   (let [{:keys [out err]} (sh/sh "bash" "-lc" cmd)]
     (str out err)))
 
-(def run-bash-cmd_tool
+(def run-bash-cmd-tool
   {:type "function"
    :function {:name "run-bash-cmd"
               :parameters {:type "object"
@@ -31,7 +31,7 @@
     :as :json
     :form-params {:model model
                   :reasoning_effort reasoning-effort
-                  :tools [run-bash-cmd_tool]
+                  :tools [run-bash-cmd-tool]
                   :messages messages}}))
 
 (def cli-options
