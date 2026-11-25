@@ -65,7 +65,7 @@
       (:help options)
       (do (println (usage summary))
           (System/exit 0))
-      errors
+      (seq errors)
       (do (binding [*out* *err*]
             (println (str/join "\n" errors))
             (println)
