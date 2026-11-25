@@ -68,10 +68,7 @@
       (do (println usage)
           (System/exit 0))
       (seq errors)
-      (do (binding [*out* *err*]
-            (println (str/join "\n" errors))
-            (println)
-            (println usage))
+      (do (binding [*out* *err*] (println (str/join "\n" errors) "\n\n" usage))
           (System/exit 2)))
     (println "[Press ctrl-c to stop.]")
     (while true (run-agent options))))
