@@ -34,18 +34,6 @@
                   :tools [run-bash-cmd-tool]
                   :messages messages}}))
 
-(def cli-options
-  [["-a" "--api-endpoint API_ENDPOINT"]
-   ["-b" "--base-url BASE_URL" :default "openrouter.ai/api"]
-   ["-k" "--api-key API_KEY"]
-   ["-e" "--api-key-env API_KEY_ENV" :default "OPENROUTER_API_KEY"]
-   ["-m" "--model MODEL" :default "openrouter/free"]
-   ["-r" "--reasoning-effort REASONING_EFFORT" :default "max"]
-   ["-h" "--help" "Show help"]])
-
-(defn usage [summary]
-  (str "Usage: clj -M -m nana [options] <prompt>\n\nOptions:\n" summary))
-
 (def system-message
   {:role "system"
    :content "You are bash specialist. Echo exactly the same back to simple greetings."})
@@ -57,6 +45,18 @@
       (if (not (seq tool-calls))
         (do (println (:content message)))
         (recur (into (conj messages message) (mapv run-tool-call tool-calls)))))))
+
+(def cli-options
+  [["-a" "--api-endpoint API_ENDPOINT"]
+   ["-b" "--base-url BASE_URL" :default "openrouter.ai/api"]
+   ["-k" "--api-key API_KEY"]
+   ["-e" "--api-key-env API_KEY_ENV" :default "OPENROUTER_API_KEY"]
+   ["-m" "--model MODEL" :default "openrouter/free"]
+   ["-r" "--reasoning-effort REASONING_EFFORT" :default "max"]
+   ["-h" "--help" "Show help"]])
+
+(defn usage [summary]
+  (str "Usage: clj -M -m nana [options] <prompt>\n\nOptions:\n" summary))
 
 (defn -main [& args]
   (let [{:keys [options arguments errors summary]} (cli/parse-opts args cli-options)
