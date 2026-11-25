@@ -22,7 +22,8 @@
    :content ((requiring-resolve (symbol "noop" name))
              (json/parse-string arguments true))})
 
-(defn chat [{:keys [api-endpoint base-url api-key api-key-env model reasoning-effort]} messages]
+(defn chat [{:keys [api-endpoint base-url api-key api-key-env model reasoning-effort]}
+            messages]
   (http/post
    (or api-endpoint (str "https://" base-url "/v1/chat/completions"))
    {:headers {:Authorization (str "Bearer " (or api-key (System/getenv api-key-env)))}
