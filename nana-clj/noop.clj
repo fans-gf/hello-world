@@ -77,5 +77,4 @@
             (println help))
           (System/exit 2)))
     (println "[Press ctrl-c to stop.]")
-    (while true
-      (run-agent options))))
+    (while true (run-agent options))))
