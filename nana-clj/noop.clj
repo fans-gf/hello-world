@@ -36,8 +36,7 @@
 
 (def system-message
   {:role "system"
-   :content "You are bash specialist.
-   Echo exactly the same back to simple greetings."})
+   :content "You are bash specialist. Echo exactly the same back to simple greetings."})
 
 (defn input []
   (print "> ")
