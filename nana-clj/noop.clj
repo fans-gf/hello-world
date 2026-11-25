@@ -77,9 +77,9 @@
           (System/exit 0))
       errors
       (do (binding [*out* *err*]
-            (do (println (str/join "\n" errors))
-                (println)
-                (println usage)))
+            (println (str/join "\n" errors))
+            (println)
+            (println usage))
           (System/exit 2))
       (:prompt options)
       (do (run-agent options)
