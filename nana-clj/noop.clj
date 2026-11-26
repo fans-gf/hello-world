@@ -70,8 +70,8 @@
            (conj messages user-message))]
     (let [assistant-message (-> messages+user ((partial chat options)) :choices first :message)
           messages+user+assistant (conj messages+user assistant-message)
-          tool-calls (:tool-calls assistant-message)
-          max-turns (:max-turns options)
+          {:keys [tool-calls content]} assistant-message
+          {:keys [max-turns]} options
           is-finite-max-turns? (pos? max-turns)
           is-reached-max-turns? (== counter max-turns)
           has-tool-calls? (seq tool-calls)]
