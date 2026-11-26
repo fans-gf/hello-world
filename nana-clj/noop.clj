@@ -50,22 +50,32 @@
 
 (def system-message
   {:role "system"
-   :content "You are bash specialist. Echo exactly the same back to simple greetings."})
+   :content "You are bash specialist. 
+             - Echo exactly the same back to simple greetings.
+             - Prefer to use `stdin stdout stderr` for non-complex tasks.
+             - Always use `/tmp` as default work space rather than the current directory.
+             - Don't download or install anything before consult with me for permission.
+             - Forbidden from `sudo`-ing anyway.
+             - Forbidden from `rm`-ing anything anyway."})
 
 (defn input []
   (print "> ")
   (flush)
   (read-line))
 
-(defn run-agent [options]
-  (loop [messages (let [user-message {:role "user"
-                                      :content (or (:prompt options) (input))}]
-                    [system-message user-message])]
-    (let [message (-> messages ((partial chat options)) :choices first :message)
-          tool-calls (:tool-calls message)]
+(defn run-agent [options messages]
+  (loop [messages+user
+         (let [user-message {:role "user" :content (or (:prompt options) (input))}]
+           (conj messages user-message))]
+    (let [assistant-message (-> messages+user ((partial chat options)) :choices first :message)
+          messages+user+assistant (conj messages+user assistant-message)
+          tool-calls (:tool-calls assistant-message)]
       (if (not (seq tool-calls))
-        (println "<" (:content message))
-        (recur (into (conj messages message) (mapv run-tool-call tool-calls)))))))
+        (do (println "<" (:content assistant-message))
+            messages+user+assistant)
+        (let [tools-messages (mapv run-tool-call tool-calls)
+              messages+user+assistant+tools (into messages+user+assistant tools-messages)]
+          (recur messages+user+assistant+tools))))))
 
 (def cli-options
   [["-p" "--prompt PROMPT" "chat once."]
@@ -94,7 +104,8 @@
         (println usage)
         (System/exit 2))
       (:prompt options)
-      (do (run-agent options)
+      (do (run-agent options [system-message])
           (System/exit 0)))
     (println "[Press ctrl-c to stop.]")
-    (while true (run-agent options))))
+    (loop [messages [system-message]]
+      (recur (run-agent options messages)))))
