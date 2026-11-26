@@ -116,8 +116,9 @@
         (println)
         (println usage)
         (System/exit 2)))
-    (let [options' (assoc options :max-turns max-turns)]
-      (if (not (-> options' :prompt empty?))
+    (let [options' (assoc options :max-turns max-turns)
+          has-prompt? (not (-> options' :prompt empty?))]
+      (if has-prompt?
         (do (run-agent options' [system-message])
             (System/exit 0)))
       (println "[Press ctrl-c to stop.]")
