@@ -80,7 +80,7 @@
         (do (println "Warning: the task is NOT finished within max turns" max-turns ", exit!")
             (System/exit 2)))
       (if (not has-tool-calls?)
-        (do (println "<" (:content assistant-message))
+        (do (println "<" content)
             messages+user+assistant)
         (let [tools-messages (mapv run-tool-call tool-calls)
               messages+user+assistant+tools (into messages+user+assistant tools-messages)]
