@@ -28,7 +28,7 @@
    :content ((requiring-resolve (symbol "noop" name))
              (json/parse-string arguments ->kebab-kw))})
 
-(defn chat [{:keys [api-endpoint base-url api-key api-key-env model reasoning-effort]}
+(defn chat [{:keys [api-endpoint base-url api-key api-key-env model reasoning-effort user-agent]}
             messages]
   (let [req-body {:model model
                   :reasoning-effort reasoning-effort
@@ -37,9 +37,13 @@
         req-body-str (json/generate-string req-body {:key-fn ->snake-str})
         resp (http/post
               (or api-endpoint (str "https://" base-url "/v1/chat/completions"))
-              {:headers {:Authorization (str "Bearer " (or api-key (System/getenv api-key-env)))}
+              {:headers
+               {:Authorization (str "Bearer " (or api-key (System/getenv api-key-env)))
+                :User-Agent user-agent}
                :cookie-policy :none
                :content-type :json
+               :accept :json
+               :decompress-body false
                :body req-body-str})
         resp-body-str (:body resp)]
     (json/parse-string resp-body-str ->kebab-kw)))
@@ -71,6 +75,7 @@
    ["-e" "--api-key-env API_KEY_ENV" :default "OPENROUTER_API_KEY"]
    ["-m" "--model MODEL" :default "openrouter/free"]
    ["-r" "--reasoning-effort REASONING_EFFORT" :default "max"]
+   ["-u" "--user-agent USER_AGENT" :default "pi/1.6.1"]
    ["-h" "--help"]])
 
 (defn -main [& args]
