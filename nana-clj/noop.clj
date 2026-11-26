@@ -92,7 +92,8 @@
   (let [{:keys [summary options errors]} (cli/parse-opts args cli-options)
         usage (str "Run nano agent loop on chat completion endpoint.\n\n"
                    "Usage: clj -M -m noop [options]\n\nOptions:\n"
-                   summary)]
+                   summary)
+        init-messages [system-message]]
     (cond
       (:help options)
       (do (println usage)
@@ -104,8 +105,8 @@
         (println usage)
         (System/exit 2))
       (:prompt options)
-      (do (run-agent options [system-message])
+      (do (run-agent options init-messages)
           (System/exit 0)))
     (println "[Press ctrl-c to stop.]")
-    (loop [messages [system-message]]
+    (loop [messages init-messages]
       (recur (run-agent options messages)))))
