@@ -64,18 +64,26 @@
   (read-line))
 
 (defn run-agent [options messages]
-  (loop [messages+user
+  (loop [counter 1
+         messages+user
          (let [user-message {:role "user" :content (or (:prompt options) (input))}]
            (conj messages user-message))]
     (let [assistant-message (-> messages+user ((partial chat options)) :choices first :message)
           messages+user+assistant (conj messages+user assistant-message)
-          tool-calls (:tool-calls assistant-message)]
-      (if (not (seq tool-calls))
+          tool-calls (:tool-calls assistant-message)
+          max-turns (:max-turns options)
+          is-finite-max-turns? (pos? max-turns)
+          is-reached-max-turns? (== counter max-turns)
+          has-tool-calls? (seq tool-calls)]
+      (if (and is-finite-max-turns? is-reached-max-turns? has-tool-calls?)
+        (do (println "Warning: the task is NOT finished within max turns" max-turns ", exit!")
+            (System/exit 2)))
+      (if (not has-tool-calls?)
         (do (println "<" (:content assistant-message))
             messages+user+assistant)
         (let [tools-messages (mapv run-tool-call tool-calls)
               messages+user+assistant+tools (into messages+user+assistant tools-messages)]
-          (recur messages+user+assistant+tools))))))
+          (recur (inc counter) messages+user+assistant+tools))))))
 
 (def cli-options
   [["-p" "--prompt PROMPT" "chat once."]
@@ -86,6 +94,7 @@
    ["-m" "--model MODEL" :default "openrouter/free"]
    ["-r" "--reasoning-effort REASONING_EFFORT" :default "max"]
    ["-u" "--user-agent USER_AGENT" :default "pi/1.6.1"]
+   ["-n" "--max-turns MAX_TRUNS" "integer, non-positive as infinite." :default "0"]
    ["-h" "--help"]])
 
 (defn -main [& args]
@@ -93,20 +102,24 @@
         usage (str "Run nano agent loop on chat completion endpoint.\n\n"
                    "Usage: clj -M -m noop [options]\n\nOptions:\n"
                    summary)
-        init-messages [system-message]]
+        max-turns-str (:max-turns options)
+        max-turns (parse-long max-turns-str)
+        invalid-max-turns? (not max-turns)]
     (cond
       (:help options)
       (do (println usage)
           (System/exit 0))
-      errors
+      (or errors invalid-max-turns?)
       (binding [*out* *err*]
-        (println (str/join "\n" errors))
+        (if errors (println (str/join "\n" errors)))
+        (if invalid-max-turns? (println "Not an integer:" max-turns-str))
         (println)
         (println usage)
-        (System/exit 2))
-      (:prompt options)
-      (do (run-agent options init-messages)
-          (System/exit 0)))
-    (println "[Press ctrl-c to stop.]")
-    (loop [messages init-messages]
-      (recur (run-agent options messages)))))
+        (System/exit 2)))
+    (let [options' (assoc options :max-turns max-turns)]
+      (if (:prompt options')
+        (do (run-agent options' [system-message])
+            (System/exit 0)))
+      (println "[Press ctrl-c to stop.]")
+      (loop [messages [system-message]]
+        (recur (run-agent options' messages))))))
