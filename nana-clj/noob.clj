@@ -1,12 +1,9 @@
+;;; Usage: BASE_URL=yours API_KEY_ENV=yours MODEL=yours clj -M -m noob
+
 (ns noob
   (:require [cheshire.core :as json]
             [clj-http.client :as http]
             [clojure.java.shell :as sh]))
-
-(def base-url "api.openai.com")
-(def api-key-env "OPENAI_API_KEY")
-(def model "gpt-6-luna")
-(def reasoning-effort "none")
 
 (defn run-tool-call [{:keys [id] {:keys [name arguments]} :function}]
   (let [{:keys [out err]} (sh/sh "bash" "-lc" (:cmd (json/parse-string arguments true)))]
@@ -23,14 +20,13 @@
 
 (defn chat [messages]
   (http/post
-   (str "https://" base-url "/v1/chat/completions")
-   {:headers {:Authorization (str "Bearer " (System/getenv api-key-env))}
+   (str "https://" (System/getenv "BASE_URL") "/v1/chat/completions")
+   {:headers {:Authorization (str "Bearer " (-> "API_KEY_ENV" System/getenv System/getenv))}
     :cookie-policy :none
     :content-type :json
     :decompress-body false
     :as :json
-    :form-params {:model model
-                  :reasoning_effort reasoning-effort
+    :form-params {:model (System/getenv "MODEL")
                   :tools [run-bash-cmd-tool]
                   :messages messages}}))
 
