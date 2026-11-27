@@ -1,3 +1,4 @@
+;;; Run nano agent loop on chat completions endpoint.
 ;;; Usage: BASE_URL=yours API_KEY_ENV=yours MODEL=yours clj -M -m noob
 ;;;    or, BASE_URL=yours API_KEY=yours API_KEY_ENV=API_KEY MODEL=yours clj -M -m noob
 
