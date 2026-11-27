@@ -14,10 +14,11 @@
 
 (defn run-tool-call [{:keys [id] {:keys [name arguments]} :function}]
   (let [{:keys [cmd]} (json/parse-string arguments true)
-        {:keys [out err]} (sh/sh "bash" "-lc" cmd)]
+        {:keys [out err]} (sh/sh "bash" "-lc" cmd)
+        content (str out err)]
     {:role "tool"
      :tool_call_id id
-     :content (str out err)}))
+     :content content}))
 
 (def run-bash-cmd-tool
   {:type "function"
