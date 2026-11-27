@@ -28,7 +28,7 @@
 (defn chat [messages]
   (http/post
    (str "https://" base-url "/v1/chat/completions")
-   {:headers {:Authorization (str "Bearer " api-key-env)}
+   {:headers {:Authorization (str "Bearer " api-key)}
     :cookie-policy :none
     :content-type :json
     :decompress-body false
