@@ -75,11 +75,10 @@
           is-finite-max-turns? (pos? max-turns)
           is-reached-max-turns? (== counter max-turns)
           has-tool-calls? (seq tool-calls)]
-      (cond
-        (and is-finite-max-turns? is-reached-max-turns? has-tool-calls?)
-        (do (println "Warning: the task is NOT finished within max turns" max-turns ", exit!")
-            (System/exit 2)))
-      (if (not has-tool-calls?)
+      (when (and is-finite-max-turns? is-reached-max-turns? has-tool-calls?)
+        (println "Warning: the task is NOT finished within max turns" max-turns ", exit!")
+        (System/exit 2))
+      (if-not has-tool-calls?
         (do (println "<" content)
             messages+user+assistant)
         (let [tools-messages (mapv run-tool-call tool-calls)
@@ -106,11 +105,10 @@
         max-turns-str (:max-turns options)
         max-turns (parse-long max-turns-str)
         invalid-max-turns? (not max-turns)]
-    (cond
-      (:help options)
-      (do (println usage)
-          (System/exit 0))
-      (or errors invalid-max-turns?)
+    (when (:help options)
+      (println usage)
+      (System/exit 0))
+    (if (or errors invalid-max-turns?)
       (binding [*out* *err*]
         (if errors (println (str/join "\n" errors)))
         (if invalid-max-turns? (println "Not an integer:" max-turns-str))
@@ -120,10 +118,9 @@
     (let [options' (assoc options :max-turns max-turns)
           has-prompt? (not (-> options' :prompt empty?))
           init-messages [system-message]]
-      (cond
-        has-prompt?
-        (do (run-agent options' init-messages)
-            (System/exit 0)))
+      (when has-prompt?
+        (run-agent options' init-messages)
+        (System/exit 0))
       (println "[Press ctrl-c to stop.]")
       (loop [messages init-messages]
         (recur (run-agent options' messages))))))
