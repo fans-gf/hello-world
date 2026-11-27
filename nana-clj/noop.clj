@@ -48,16 +48,6 @@
         resp-body-str (:body resp)]
     (json/parse-string resp-body-str ->kebab-kw)))
 
-(def system-message
-  {:role "system"
-   :content "You are bash specialist. 
-             - Echo exactly the same back to simple greetings.
-             - Prefer to use `stdin stdout stderr` for non-complex tasks.
-             - Always use `/tmp` as default work space rather than the current directory.
-             - Don't download or install anything before consult with me for permission.
-             - Forbidden from `sudo`-ing anyway.
-             - Forbidden from `rm`-ing anything anyway."})
-
 (defn input []
   (print "> ")
   (flush)
@@ -94,6 +84,16 @@
    ["-u" "--user-agent USER_AGENT" :default "pi/1.6.1"]
    ["-n" "--max-turns MAX_TRUNS" "integer, non-positive as infinite." :default "0"]
    ["-h" "--help"]])
+
+(def system-message
+  {:role "system"
+   :content "You are bash specialist. 
+             - Echo exactly the same back to simple greetings.
+             - Prefer to use `stdin stdout stderr` for non-complex tasks.
+             - Always use `/tmp` as default work space rather than the current directory.
+             - Don't download or install anything before consult with me for permission.
+             - Forbidden from `sudo`-ing anyway.
+             - Forbidden from `rm`-ing anything anyway."})
 
 (defn -main [& args]
   (let [{:keys [summary options errors]} (cli/parse-opts args cli-options)
