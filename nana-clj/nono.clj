@@ -30,7 +30,7 @@
                     {:role "user" :content prompt}]]
      (let [message (-> messages chat :body :choices first :message)
            tool-calls (:tool_calls message)]
-       (if (not (seq tool-calls))
+       (if (-> tool-calls seq not)
          (-> message :content println)
          (recur (into (conj messages message) (mapv run-tool-call tool-calls))))))
    (System/exit 0)))
