@@ -8,6 +8,7 @@
             [clojure.java.shell :as sh]))
 
 (def base-url (System/getenv "BASE_URL"))
+(def url (str "https://" base-url "/v1/chat/completions"))
 (def api-key-env (System/getenv "API_KEY_ENV"))
 (def api-key (System/getenv api-key-env))
 (def model (System/getenv "MODEL"))
@@ -27,7 +28,7 @@
 
 (defn chat [messages]
   (http/post
-   (str "https://" base-url "/v1/chat/completions")
+   url
    {:headers {:Authorization (str "Bearer " api-key)}
     :cookie-policy :none
     :content-type :json
