@@ -8,6 +8,12 @@
 (def model "gpt-6-luna")
 (def reasoning-effort "none")
 
+(defn run-tool-call [{:keys [id] {:keys [name arguments]} :function}]
+  (let [{:keys [out err]} (sh/sh "bash" "-lc" (:cmd (json/parse-string arguments true)))]
+    {:role "tool"
+     :tool_call_id id
+     :content (str out err)}))
+
 (def run-bash-cmd-tool
   {:type "function"
    :function {:name "run-bash-cmd"
@@ -27,12 +33,6 @@
                   :reasoning_effort reasoning-effort
                   :tools [run-bash-cmd-tool]
                   :messages messages}}))
-
-(defn run-tool-call [{:keys [id] {:keys [name arguments]} :function}]
-  (let [{:keys [out err]} (sh/sh "bash" "-lc" (:cmd (json/parse-string arguments true)))]
-    {:role "tool"
-     :tool_call_id id
-     :content (str out err)}))
 
 (defn input []
   (print "> ")
