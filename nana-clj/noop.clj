@@ -64,21 +64,19 @@
   (read-line))
 
 (defn run-agent [options messages]
-  (loop [counter 1
-         messages+user
-         (let [user-message {:role "user" :content (or (:prompt options) (input))}]
-           (conj messages user-message))]
+  (loop [counter 0
+         messages+user (let [user-message {:role "user" :content (or (:prompt options) (input))}]
+                         (conj messages user-message))]
+    (let [{:keys [max-turns]} options
+          is-finite-max-turns? (pos? max-turns)
+          is-reached-max-turns? (== counter max-turns)]
+      (when (and is-finite-max-turns? is-reached-max-turns?)
+        (println "Warning: the task is NOT finished within max turns" max-turns ", exit!")
+        (System/exit 2)))
     (let [assistant-message (-> messages+user ((partial chat options)) :choices first :message)
           messages+user+assistant (conj messages+user assistant-message)
-          {:keys [tool-calls content]} assistant-message
-          {:keys [max-turns]} options
-          is-finite-max-turns? (pos? max-turns)
-          is-reached-max-turns? (== counter max-turns)
-          has-tool-calls? (seq tool-calls)]
-      (when (and is-finite-max-turns? is-reached-max-turns? has-tool-calls?)
-        (println "Warning: the task is NOT finished within max turns" max-turns ", exit!")
-        (System/exit 2))
-      (if-not has-tool-calls?
+          {:keys [tool-calls content]} assistant-message]
+      (if-let [no-tool-calls? (not (seq tool-calls))]
         (do (println "<" content)
             messages+user+assistant)
         (let [tools-messages (mapv run-tool-call tool-calls)
@@ -103,22 +101,21 @@
                    "Usage: clj -M -m noop [options]\n\nOptions:\n"
                    summary)
         max-turns-str (:max-turns options)
-        max-turns (parse-long max-turns-str)
-        invalid-max-turns? (not max-turns)]
+        max-turns (parse-long max-turns-str)]
     (when (:help options)
       (println usage)
       (System/exit 0))
-    (if (or errors invalid-max-turns?)
-      (binding [*out* *err*]
-        (if errors (println (str/join "\n" errors)))
-        (if invalid-max-turns? (println "Not an integer:" max-turns-str))
-        (println)
-        (println usage)
-        (System/exit 2)))
+    (let [invalid-max-turns? (not max-turns)]
+      (if (or errors invalid-max-turns?)
+        (binding [*out* *err*]
+          (if errors (println (str/join "\n" errors)))
+          (if invalid-max-turns? (println "Not an integer:" max-turns-str))
+          (println)
+          (println usage)
+          (System/exit 2))))
     (let [options' (assoc options :max-turns max-turns)
-          has-prompt? (not (-> options' :prompt empty?))
           init-messages [system-message]]
-      (when has-prompt?
+      (when-let [has-prompt? (not (-> options' :prompt empty?))]
         (run-agent options' init-messages)
         (System/exit 0))
       (println "[Press ctrl-c to stop.]")
