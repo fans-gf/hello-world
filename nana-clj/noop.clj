@@ -106,10 +106,10 @@
       (println usage)
       (System/exit 0))
     (let [invalid-max-turns? (not max-turns)]
-      (if (or errors invalid-max-turns?)
+      (when (or errors invalid-max-turns?)
         (binding [*out* *err*]
-          (if errors (println (str/join "\n" errors)))
-          (if invalid-max-turns? (println "Not an integer:" max-turns-str))
+          (when errors (println (str/join "\n" errors)))
+          (when invalid-max-turns? (println "Not an integer:" max-turns-str))
           (println)
           (println usage)
           (System/exit 2))))
@@ -120,4 +120,4 @@
         (System/exit 0))
       (println "[Press ctrl-c to stop.]")
       (loop [messages init-messages]
-        (recur (run-agent options' messages))))))
+        (recur (run-agent (dissoc options' :prompt) messages))))))
