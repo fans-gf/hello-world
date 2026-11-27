@@ -5,6 +5,10 @@
             [clj-http.client :as http]
             [clojure.java.shell :as sh]))
 
+(def base-url (System/getenv "BASE_URL"))
+(def api-key-env (System/getenv "API_KEY_ENV"))
+(def model (System/getenv "MODEL"))
+
 (defn run-tool-call [{:keys [id] {:keys [name arguments]} :function}]
   (let [{:keys [out err]} (sh/sh "bash" "-lc" (:cmd (json/parse-string arguments true)))]
     {:role "tool"
@@ -20,13 +24,13 @@
 
 (defn chat [messages]
   (http/post
-   (str "https://" (System/getenv "BASE_URL") "/v1/chat/completions")
-   {:headers {:Authorization (str "Bearer " (-> "API_KEY_ENV" System/getenv System/getenv))}
+   (str "https://" base-url "/v1/chat/completions")
+   {:headers {:Authorization (str "Bearer " (System/getenv api-key-env))}
     :cookie-policy :none
     :content-type :json
     :decompress-body false
     :as :json
-    :form-params {:model (System/getenv "MODEL")
+    :form-params {:model model
                   :tools [run-bash-cmd-tool]
                   :messages messages}}))
 
