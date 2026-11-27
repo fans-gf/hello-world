@@ -27,16 +27,15 @@
                            :required ["cmd"]}}})
 
 (defn chat [messages]
-  (http/post
-   url
-   {:headers {:Authorization (str "Bearer " api-key)}
-    :cookie-policy :none
-    :content-type :json
-    :decompress-body false
-    :as :json
-    :form-params {:model model
-                  :tools [run-bash-cmd-tool]
-                  :messages messages}}))
+  (http/post url
+             {:headers {:Authorization (str "Bearer " api-key)}
+              :cookie-policy :none
+              :content-type :json
+              :decompress-body false
+              :as :json
+              :form-params {:model model
+                            :tools [run-bash-cmd-tool]
+                            :messages messages}}))
 
 (defn input []
   (print "> ")
