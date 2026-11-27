@@ -2,3 +2,5 @@
 .*.swp
 *.BAK
 *.BAK.*
+*.log
+*.log.*
