@@ -76,7 +76,7 @@
     (let [assistant-message (-> messages+user ((partial chat options)) :choices first :message)
           messages+user+assistant (conj messages+user assistant-message)
           {:keys [tool-calls content]} assistant-message]
-      (if-let [no-tool-calls? (not (seq tool-calls))]
+      (if-let [no-tool-calls? (-> tool-calls seq not)]
         (do (println "<" content)
             messages+user+assistant)
         (let [tools-messages (mapv run-tool-call tool-calls)
@@ -115,7 +115,7 @@
           (System/exit 2))))
     (let [options' (assoc options :max-turns max-turns)
           init-messages [system-message]]
-      (when-let [has-prompt? (not (-> options' :prompt empty?))]
+      (when-let [has-prompt? (-> options' :prompt empty? not)]
         (run-agent options' init-messages)
         (System/exit 0))
       (println "[Press ctrl-c to stop.]")
