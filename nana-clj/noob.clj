@@ -13,8 +13,7 @@
 (def model (System/getenv "MODEL"))
 
 (defn run-tool-call [{:keys [id]
-                      {:keys [name arguments]}
-                      :function}]
+                      {:keys [name arguments]} :function}]
   (let [{:keys [cmd]} (json/parse-string arguments true)
         {:keys [out err]} (sh/sh "bash" "-lc" cmd)
         result (str out err)]
