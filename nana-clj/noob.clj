@@ -1,5 +1,5 @@
 ;;; Run "noob", the nano agent loop on chat completions endpoints.
-;;; Usage: BASE_URL=yours API_KEY_ENV=yours MODEL=yours clj -M -m noob
+;;; Usage: clj -P && BASE_URL=yours API_KEY_ENV=yours MODEL=yours clj -M -m noob
 
 (ns noob
   (:require [cheshire.core :as json]
