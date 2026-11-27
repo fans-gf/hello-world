@@ -15,10 +15,10 @@
 (defn run-tool-call [{:keys [id] {:keys [name arguments]} :function}]
   (let [{:keys [cmd]} (json/parse-string arguments true)
         {:keys [out err]} (sh/sh "bash" "-lc" cmd)
-        content (str out err)]
+        result (str out err)]
     {:role "tool"
      :tool_call_id id
-     :content content}))
+     :content result}))
 
 (def run-bash-cmd-tool
   {:type "function"
@@ -45,7 +45,8 @@
   (read-line))
 
 (defn run-agent [messages]
-  (loop [messages+user (let [user-message {:role "user" :content (input)}]
+  (loop [messages+user (let [prompt (input)
+                             user-message {:role "user" :content prompt}]
                          (conj messages user-message))]
     (let [assistant-message (-> messages+user chat :body :choices first :message)
           messages+user+assistant (conj messages+user assistant-message)
