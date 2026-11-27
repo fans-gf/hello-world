@@ -13,7 +13,8 @@
 (def model (System/getenv "MODEL"))
 
 (defn run-tool-call [{:keys [id] {:keys [name arguments]} :function}]
-  (let [{:keys [out err]} (sh/sh "bash" "-lc" (:cmd (json/parse-string arguments true)))]
+  (let [{:keys [cmd]} (json/parse-string arguments true)
+        {:keys [out err]} (sh/sh "bash" "-lc" cmd)]
     {:role "tool"
      :tool_call_id id
      :content (str out err)}))
@@ -26,15 +27,16 @@
                            :required ["cmd"]}}})
 
 (defn chat [messages]
-  (http/post url
-             {:headers {:Authorization (str "Bearer " api-key)}
-              :cookie-policy :none
-              :content-type :json
-              :decompress-body false
-              :as :json
-              :form-params {:model model
-                            :tools [run-bash-cmd-tool]
-                            :messages messages}}))
+  (let [auth-token (str "Bearer " api-key)]
+    (http/post url
+               {:headers {:authorization auth-token}
+                :cookie-policy :none
+                :content-type :json
+                :decompress-body false
+                :as :json
+                :form-params {:model model
+                              :tools [run-bash-cmd-tool]
+                              :messages messages}})))
 
 (defn input []
   (print "> ")
