@@ -9,6 +9,7 @@
 
 (def base-url (System/getenv "BASE_URL"))
 (def api-key-env (System/getenv "API_KEY_ENV"))
+(def api-key (System/getenv api-key-env))
 (def model (System/getenv "MODEL"))
 
 (defn run-tool-call [{:keys [id] {:keys [name arguments]} :function}]
@@ -27,7 +28,7 @@
 (defn chat [messages]
   (http/post
    (str "https://" base-url "/v1/chat/completions")
-   {:headers {:Authorization (str "Bearer " (System/getenv api-key-env))}
+   {:headers {:Authorization (str "Bearer " api-key-env)}
     :cookie-policy :none
     :content-type :json
     :decompress-body false
