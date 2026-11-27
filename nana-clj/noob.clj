@@ -12,7 +12,9 @@
 (def api-key (System/getenv api-key-env))
 (def model (System/getenv "MODEL"))
 
-(defn run-tool-call [{:keys [id] {:keys [name arguments]} :function}]
+(defn run-tool-call [{:keys [id]
+                      {:keys [name arguments]}
+                      :function}]
   (let [{:keys [cmd]} (json/parse-string arguments true)
         {:keys [out err]} (sh/sh "bash" "-lc" cmd)
         result (str out err)]
@@ -46,7 +48,8 @@
 
 (defn run-agent [messages]
   (loop [messages+user (let [prompt (input)
-                             user-message {:role "user" :content prompt}]
+                             user-message {:role "user"
+                                           :content prompt}]
                          (conj messages user-message))]
     (let [assistant-message (-> messages+user chat :body :choices first :message)
           messages+user+assistant (conj messages+user assistant-message)
