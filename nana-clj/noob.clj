@@ -3,11 +3,6 @@
             [clj-http.client :as http]
             [clojure.java.shell :as sh]))
 
-(def base-url "integrate.api.nvidia.com")
-(def api-key-env "NVIDIA_API_KEY")
-(def model "nvidia/nemotron-3.5-super-vl-120b-a12b")
-(def reasoning-effort "max")
-
 (def base-url "api.openai.com")
 (def api-key-env "OPENAI_API_KEY")
 (def model "gpt-6-luna")
