@@ -1,4 +1,4 @@
-;;; Usage: BASE_URL=yours API_KEY_ENV=yours MODEL=yours clj -M -m noob
+;;; Usage: BASE_URL=yours API_KEY=yours API_KEY_ENV=API_KEY MODEL=yours clj -M -m noob
 
 (ns noob
   (:require [cheshire.core :as json]
