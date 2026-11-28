@@ -23,7 +23,7 @@
             [clojure.tools.cli :as cli]))
 
 (declare cli-options options parse-options)
-(declare system-prompt run-bash-cmd-tool save-or-input)
+(declare system-prompt run-bash-cmd-tool input-or-save)
 (declare run-agent chat run-tool-call)
 
 (def cli-options
