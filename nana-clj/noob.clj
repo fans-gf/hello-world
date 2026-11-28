@@ -1,4 +1,6 @@
 (ns noob
+  (:import [java.time LocalDateTime]
+           [java.time.format DateTimeFormatter])
   (:require [cheshire.core :as json]
             [clj-http.client :as http]
             [clojure.java.shell :as sh]
@@ -6,7 +8,7 @@
             [clojure.tools.cli :as cli]))
 
 (declare cli-options options parse-options)
-(declare system-prompt run-bash-cmd-tool input)
+(declare system-prompt run-bash-cmd-tool save-or-input)
 (declare run-agent chat run-tool-call)
 
 (def cli-options
@@ -50,13 +52,23 @@
                            :properties {:cmd {:type "string"}}
                            :required ["cmd"]}}})
 
-(defn input [prompt-str]
+(defn input-or-save [prompt-str messages]
   (print prompt-str)
   (flush)
-  (read-line))
+  (if-let [line (read-line)]
+    line
+    (let [now (LocalDateTime/now)
+          fmt (DateTimeFormatter/ofPattern "yyyyMMdd_HHmmss")
+          now-str (.format now fmt)
+          file-name (str "messages_" now-str ".txt")
+          messages-str (json/generate-string messages)]
+      (spit file-name messages-str)
+      (println)
+      (println "[" file-name "saved. ]")
+      (System/exit 1))))
 
 (defn run-agent [messages]
-  (loop [messages+user (let [user-prompt (input "> ")
+  (loop [messages+user (let [user-prompt (input-or-save "> " messages)
                              user-message {:role "user"
                                            :content user-prompt}]
                          (conj messages user-message))]
@@ -67,8 +79,16 @@
         (do (println "< ")
             (println content)
             messages+user+assistant)
-        (let [tools-messages (mapv run-tool-call tool_calls)
-              messages+user+assistant+tools (into messages+user+assistant tools-messages)]
+        (let [n (count tool_calls)
+              messages+user+assistant+tools
+              (loop [i 0
+                     messages+user+assistant+tool messages+user+assistant]
+                (if (= i n)
+                  messages+user+assistant+tool
+                  (let [tool-call (tool_calls i)
+                        tool-message (run-tool-call tool-call messages+user+assistant+tool)
+                        messages+user+assistant+tool* (conj messages+user+assistant+tool tool-message)]
+                    (recur (inc i) messages+user+assistant+tool*))))]
           (recur messages+user+assistant+tools))))))
 
 (defn chat [messages]
@@ -88,13 +108,14 @@
                               :messages messages}})))
 
 (defn run-tool-call [{:keys [id]
-                      {:keys [name arguments]} :function}]
+                      {:keys [name arguments]} :function}
+                     messages]
   (let [{:keys [cmd]} (json/parse-string arguments true)
         confirm-tool-call? (:confirm-tool-call options)]
     (when confirm-tool-call?
       (println "<<<")
       (println cmd)
-      (input ">>> [Enter] "))
+      (input-or-save ">>> [ Enter ] " messages))
     (let [{:keys [out err]} (sh/sh "bash" "-lc" cmd)
           result (str out err)
           tool-message {:role "tool"
@@ -106,7 +127,8 @@
 
 (defn -main [& args]
   ((parse-options args)
-   (println "[Press ctrl-c to stop.]")
+   (println "[ Press ctrl-c to stop. ]")
+   (println "[ Press ctrl-d to save and stop. ]")
    (let [system-message {:role "system"
                          :content system-prompt}]
      (loop [messages [system-message]]
