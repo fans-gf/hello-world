@@ -23,8 +23,8 @@
             [clojure.string :as str]
             [clojure.tools.cli :as cli]))
 
-(declare cli-options options parse-options)
-(declare system-prompt run-bash-cmd-tool save! chat)
+(declare cli-options options parse-options save!)
+(declare system-prompt run-bash-cmd-tool chat)
 (declare run-agent run-tool-call input-save-stop)
 
 (def cli-options
@@ -52,6 +52,16 @@
         (System/exit 2)))
     (def options options)))
 
+(defn save! [messages]
+  (let [now (LocalDateTime/now)
+        fmt (DateTimeFormatter/ofPattern "yyyyMMdd_HHmmss")
+        now-str (.format now fmt)
+        file-name (str "messages_" now-str ".txt")
+        messages-str (json/generate-string messages)]
+    (spit file-name messages-str)
+    (println)
+    (println "[" file-name "saved. ]")))
+
 (def system-prompt
   (str/join "\n"
             ["You are bash specialist."
@@ -68,16 +78,6 @@
               :parameters {:type "object"
                            :properties {:cmd {:type "string"}}
                            :required ["cmd"]}}})
-
-(defn save! [messages]
-  (let [now (LocalDateTime/now)
-        fmt (DateTimeFormatter/ofPattern "yyyyMMdd_HHmmss")
-        now-str (.format now fmt)
-        file-name (str "messages_" now-str ".txt")
-        messages-str (json/generate-string messages)]
-    (spit file-name messages-str)
-    (println)
-    (println "[" file-name "saved. ]")))
 
 (defn chat [messages]
   (let [{:keys [base-url api-key-env model reasoning-effort]} options
