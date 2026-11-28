@@ -1,5 +1,6 @@
 __pycache__/
 .cpcache
+.env
 .*.swp
 *.BAK
 *.BAK.*
