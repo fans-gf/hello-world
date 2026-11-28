@@ -23,9 +23,8 @@
             [clojure.string :as str]
             [clojure.tools.cli :as cli]))
 
-(declare cli-options options parse-options save!)
-(declare system-prompt run-bash-cmd-tool chat)
-(declare input-save-stop run-tool-call run-agent)
+(declare chat cli-options input-save-stop messages! options parse-options
+         run-agent run-bash-cmd run-bash-cmd-tool run-tool-call save! system-prompt)
 
 (def cli-options
   [["-b" "--base-url BASE_URL" "[ required ]" :missing "Missing: --base-url"]
@@ -107,22 +106,28 @@
           (println "[ No new messages to save. ]"))
         (input-save-stop prompt-str))))
 
-(defn run-tool-call [{:keys [id]
-                      {:keys [name arguments]} :function}
-                     messages]
-  (let [{:keys [cmd]} (json/parse-string arguments true)
-        confirm-tool-call? (:confirm-tool-call options)]
+(defn run-bash-cmd [{:keys [cmd]}]
+  (let [confirm-tool-call? (:confirm-tool-call options)]
     (when confirm-tool-call?
       (println "<<<")
       (println cmd)
-      (input-save-stop ">>> [ Enter ] " messages))
-    (let [{:keys [out err]} (sh/sh "bash" "-lc" cmd)
-          result (str out err)]
+      (input-save-stop ">>> [ Enter ] " messages!))
+    (let [{:keys [exit out err]} (sh/sh "bash" "-lc" cmd)
+          result (if (zero? exit)
+                   (str out err)
+                   (str "exit_code=" exit "\n" out err))]
       (when confirm-tool-call?
         (println result))
-      {:role "tool"
-       :tool_call_id id
-       :content result})))
+      result)))
+
+(defn run-tool-call [{:keys [id]
+                      {:keys [name arguments]} :function}
+                     messages!]
+  (def messages! messages!)
+  {:role "tool"
+   :tool_call_id id
+   :content ((requiring-resolve (symbol "noob" name))
+             (json/parse-string arguments true))})
 
 (defn run-agent [messages]
   (loop [messages+user (let [user-prompt (input-save-stop "> " messages)
