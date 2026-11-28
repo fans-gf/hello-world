@@ -1,6 +1,6 @@
 ;;; Run "noob", the nano agent loop on chat completion endpoints.
 ;;; 
-;;; Usage: clj -M -m noop [options]
+;;; Usage: clj -M -m noob [options]
 ;;; 
 ;;; Options:
 ;;;   -b, --base-url BASE_URL                       [ required ]
@@ -22,6 +22,7 @@
             [clojure.java.shell :as sh]
             [clojure.string :as str]
             [clojure.tools.cli :as cli]))
+(def -name- "noob")
 
 (declare chat cli-options input-save-stop messages! options parse-options
          run-agent run-bash-cmd run-bash-cmd-tool run-tool-call save! system-prompt)
@@ -37,8 +38,8 @@
 
 (defn parse-options [args]
   (let [{:keys [summary options errors]} (cli/parse-opts args cli-options)
-        usage (str "Run \"noob\", the nano agent loop on chat completion endpoints.\n\n"
-                   "Usage: clj -M -m noop [options]\n\nOptions:\n"
+        usage (str "Run \"" -name- "\", the nano agent loop on chat completion endpoints.\n\n"
+                   "Usage: clj -M -m " -name- " [options]\n\nOptions:\n"
                    summary)]
     (when (:help options)
       (println usage)
@@ -126,7 +127,7 @@
   (def messages! messages!)
   {:role "tool"
    :tool_call_id id
-   :content ((requiring-resolve (symbol "noob" name))
+   :content ((requiring-resolve (symbol -name- name))
              (json/parse-string arguments true))})
 
 (defn run-agent [messages]
