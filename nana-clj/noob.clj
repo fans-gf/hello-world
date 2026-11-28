@@ -69,22 +69,24 @@
                            :properties {:cmd {:type "string"}}
                            :required ["cmd"]}}})
 
-(defn input-save-stop [prompt-str messages]
+(defn input-save-stop [prompt-str & messages]
   (print prompt-str)
   (flush)
   (if-let [line (read-line)]
     line
-    (let [now (LocalDateTime/now)
-          fmt (DateTimeFormatter/ofPattern "yyyyMMdd_HHmmss")
-          now-str (.format now fmt)
-          file-name (str "messages_" now-str ".txt")
-          messages-str (json/generate-string messages)]
-      (spit file-name messages-str)
-      (println)
-      (println "[" file-name "saved. ]")
-      (if (:save-stop options)
-        (System/exit 1)
-        (input-save-stop prompt-str messages)))))
+    (do (if messages
+          (let [now (LocalDateTime/now)
+                fmt (DateTimeFormatter/ofPattern "yyyyMMdd_HHmmss")
+                now-str (.format now fmt)
+                file-name (str "messages_" now-str ".txt")
+                messages-str (json/generate-string messages)]
+            (spit file-name messages-str)
+            (println)
+            (println "[" file-name "saved. ]")
+            (when (:save-stop options)
+              (System/exit 1)))
+          (println "[ No new messages to save. ]"))
+        (input-save-stop prompt-str))))
 
 (defn run-agent [messages]
   (loop [messages+user (let [user-prompt (input-save-stop "> " messages)
