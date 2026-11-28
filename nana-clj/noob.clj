@@ -24,7 +24,7 @@
             [clojure.tools.cli :as cli]))
 (def -name- "noob")
 
-(declare chat cli-options input-save-stop messages! options parse-options
+(declare chat cli-options input-save-stop messages! options parse-options!
          run-agent run-bash-cmd run-bash-cmd-tool run-tool-call save! system-prompt)
 
 (def cli-options
@@ -36,7 +36,7 @@
    ["-S" "--save-stop" "[ Press ctrl-d to save and stop. ]"]
    ["-h" "--help"]])
 
-(defn parse-options [args]
+(defn parse-options! [args]
   (let [{:keys [summary options errors]} (cli/parse-opts args cli-options)
         usage (str "Run \"" -name- "\", the nano agent loop on chat completion endpoints.\n\n"
                    "Usage: clj -M -m " -name- " [options]\n\nOptions:\n"
@@ -154,7 +154,7 @@
           (recur messages+user+assistant+tools))))))
 
 (defn -main [& args]
-  ((parse-options args)
+  ((parse-options! args)
    (println "[ Press ctrl-d to save. ]")
    (println "[ Press ctrl-c to stop. ]")
    (let [system-message {:role "system"
