@@ -1,3 +1,18 @@
+;;; Run "noob", the nano agent loop on chat completion endpoints.
+;;; 
+;;; Usage: clj -M -m noop [options]
+;;; 
+;;; Options:
+;;;   -b, --base-url BASE_URL
+;;;   -e, --api-key-env API_KEY_ENV
+;;;   -m, --model MODEL
+;;;   -r, --reasoning-effort REASONING_EFFORT  max
+;;;   -C, --confirm-tool-call                       [ Press Enter to confirm. ]
+;;;   -h, --help
+;;;
+;;; [ Press ctrl-c to stop. ]
+;;; [ Press ctrl-d to save and stop. ]
+
 (ns noob
   (:import [java.time LocalDateTime]
            [java.time.format DateTimeFormatter])
@@ -16,7 +31,7 @@
    ["-e" "--api-key-env API_KEY_ENV" :missing "Missing: --api-key-env"]
    ["-m" "--model MODEL" :missing "Missing: --model"]
    ["-r" "--reasoning-effort REASONING_EFFORT" :default "max"]
-   ["-C" "--confirm-tool-call"]
+   ["-C" "--confirm-tool-call" "[ Press Enter to confirm. ]"]
    ["-h" "--help"]])
 
 (defn parse-options [args]
