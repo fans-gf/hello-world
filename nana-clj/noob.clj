@@ -25,7 +25,7 @@
 
 (declare cli-options options parse-options save!)
 (declare system-prompt run-bash-cmd-tool chat)
-(declare run-agent run-tool-call input-save-stop)
+(declare input-save-stop run-tool-call run-agent)
 
 (def cli-options
   [["-b" "--base-url BASE_URL" "[ required ]" :missing "Missing: --base-url"]
@@ -95,6 +95,35 @@
                               :tools [run-bash-cmd-tool]
                               :messages messages}})))
 
+(defn input-save-stop [prompt-str & messages]
+  (print prompt-str)
+  (flush)
+  (if-let [line (read-line)]
+    line
+    (do (if messages
+          (do (save! messages)
+              (when (:save-stop options)
+                (System/exit 1)))
+          (println "[ No new messages to save. ]"))
+        (input-save-stop prompt-str))))
+
+(defn run-tool-call [{:keys [id]
+                      {:keys [name arguments]} :function}
+                     messages]
+  (let [{:keys [cmd]} (json/parse-string arguments true)
+        confirm-tool-call? (:confirm-tool-call options)]
+    (when confirm-tool-call?
+      (println "<<<")
+      (println cmd)
+      (input-save-stop ">>> [ Enter ] " messages))
+    (let [{:keys [out err]} (sh/sh "bash" "-lc" cmd)
+          result (str out err)]
+      (when confirm-tool-call?
+        (println result))
+      {:role "tool"
+       :tool_call_id id
+       :content result})))
+
 (defn run-agent [messages]
   (loop [messages+user (let [user-prompt (input-save-stop "> " messages)
                              user-message {:role "user"
@@ -118,35 +147,6 @@
                         messages+user+assistant+tool* (conj messages+user+assistant+tool tool-message)]
                     (recur (inc i) messages+user+assistant+tool*))))]
           (recur messages+user+assistant+tools))))))
-
-(defn run-tool-call [{:keys [id]
-                      {:keys [name arguments]} :function}
-                     messages]
-  (let [{:keys [cmd]} (json/parse-string arguments true)
-        confirm-tool-call? (:confirm-tool-call options)]
-    (when confirm-tool-call?
-      (println "<<<")
-      (println cmd)
-      (input-save-stop ">>> [ Enter ] " messages))
-    (let [{:keys [out err]} (sh/sh "bash" "-lc" cmd)
-          result (str out err)]
-      (when confirm-tool-call?
-        (println result))
-      {:role "tool"
-       :tool_call_id id
-       :content result})))
-
-(defn input-save-stop [prompt-str & messages]
-  (print prompt-str)
-  (flush)
-  (if-let [line (read-line)]
-    line
-    (do (if messages
-          (do (save! messages)
-              (when (:save-stop options)
-                (System/exit 1)))
-          (println "[ No new messages to save. ]"))
-        (input-save-stop prompt-str))))
 
 (defn -main [& args]
   ((parse-options args)
