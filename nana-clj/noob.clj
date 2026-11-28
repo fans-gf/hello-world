@@ -8,10 +8,11 @@
 ;;;   -m, --model MODEL
 ;;;   -r, --reasoning-effort REASONING_EFFORT  max
 ;;;   -C, --confirm-tool-call                       [ Press Enter to confirm. ]
+;;;   -S, --save-stop                               [ Press ctrl-d to save and stop. ]
 ;;;   -h, --help
 ;;;
+;;; [ Press ctrl-d to save. ]
 ;;; [ Press ctrl-c to stop. ]
-;;; [ Press ctrl-d to save and stop. ]
 
 (ns noob
   (:import [java.time LocalDateTime]
@@ -23,7 +24,7 @@
             [clojure.tools.cli :as cli]))
 
 (declare cli-options options parse-options)
-(declare system-prompt run-bash-cmd-tool input-or-save)
+(declare system-prompt run-bash-cmd-tool input-save-stop)
 (declare run-agent chat run-tool-call)
 
 (def cli-options
@@ -32,6 +33,7 @@
    ["-m" "--model MODEL" :missing "Missing: --model"]
    ["-r" "--reasoning-effort REASONING_EFFORT" :default "max"]
    ["-C" "--confirm-tool-call" "[ Press Enter to confirm. ]"]
+   ["-S" "--save-stop" "[ Press ctrl-d to save and stop. ]"]
    ["-h" "--help"]])
 
 (defn parse-options [args]
@@ -67,7 +69,7 @@
                            :properties {:cmd {:type "string"}}
                            :required ["cmd"]}}})
 
-(defn input-or-save [prompt-str messages]
+(defn input-save-stop [prompt-str messages]
   (print prompt-str)
   (flush)
   (if-let [line (read-line)]
@@ -80,10 +82,12 @@
       (spit file-name messages-str)
       (println)
       (println "[" file-name "saved. ]")
-      (System/exit 1))))
+      (if (:save-stop options)
+        (System/exit 1)
+        (input-save-stop prompt-str messages)))))
 
 (defn run-agent [messages]
-  (loop [messages+user (let [user-prompt (input-or-save "> " messages)
+  (loop [messages+user (let [user-prompt (input-save-stop "> " messages)
                              user-message {:role "user"
                                            :content user-prompt}]
                          (conj messages user-message))]
@@ -130,7 +134,7 @@
     (when confirm-tool-call?
       (println "<<<")
       (println cmd)
-      (input-or-save ">>> [ Enter ] " messages))
+      (input-save-stop ">>> [ Enter ] " messages))
     (let [{:keys [out err]} (sh/sh "bash" "-lc" cmd)
           result (str out err)
           tool-message {:role "tool"
@@ -142,8 +146,8 @@
 
 (defn -main [& args]
   ((parse-options args)
+   (println "[ Press ctrl-d to save. ]")
    (println "[ Press ctrl-c to stop. ]")
-   (println "[ Press ctrl-d to save and stop. ]")
    (let [system-message {:role "system"
                          :content system-prompt}]
      (loop [messages [system-message]]
