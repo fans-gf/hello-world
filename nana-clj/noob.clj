@@ -3,9 +3,9 @@
 ;;; Usage: clj -M -m noop [options]
 ;;; 
 ;;; Options:
-;;;   -b, --base-url BASE_URL
-;;;   -e, --api-key-env API_KEY_ENV
-;;;   -m, --model MODEL
+;;;   -b, --base-url BASE_URL                       [ required ]
+;;;   -e, --api-key-env API_KEY_ENV                 [ required ]
+;;;   -m, --model MODEL                             [ required ]
 ;;;   -r, --reasoning-effort REASONING_EFFORT  max
 ;;;   -C, --confirm-tool-call                       [ Press Enter to confirm. ]
 ;;;   -S, --save-stop                               [ Press ctrl-d to save and stop. ]
@@ -28,9 +28,9 @@
 (declare run-agent chat run-tool-call)
 
 (def cli-options
-  [["-b" "--base-url BASE_URL" :missing "Missing: --base-url"]
-   ["-e" "--api-key-env API_KEY_ENV" :missing "Missing: --api-key-env"]
-   ["-m" "--model MODEL" :missing "Missing: --model"]
+  [["-b" "--base-url BASE_URL" "[ required ]" :missing "Missing: --base-url"]
+   ["-e" "--api-key-env API_KEY_ENV" "[ required ]" :missing "Missing: --api-key-env"]
+   ["-m" "--model MODEL" "[ required ]" :missing "Missing: --model"]
    ["-r" "--reasoning-effort REASONING_EFFORT" :default "max"]
    ["-C" "--confirm-tool-call" "[ Press Enter to confirm. ]"]
    ["-S" "--save-stop" "[ Press ctrl-d to save and stop. ]"]
