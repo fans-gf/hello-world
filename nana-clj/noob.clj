@@ -24,8 +24,8 @@
             [clojure.tools.cli :as cli]))
 
 (declare cli-options options parse-options)
-(declare system-prompt run-bash-cmd-tool chat)
-(declare run-agent input-save-stop run-tool-call)
+(declare system-prompt run-bash-cmd-tool save! chat)
+(declare run-agent run-tool-call input-save-stop)
 
 (def cli-options
   [["-b" "--base-url BASE_URL" "[ required ]" :missing "Missing: --base-url"]
@@ -69,6 +69,16 @@
                            :properties {:cmd {:type "string"}}
                            :required ["cmd"]}}})
 
+(defn save! [messages]
+  (let [now (LocalDateTime/now)
+        fmt (DateTimeFormatter/ofPattern "yyyyMMdd_HHmmss")
+        now-str (.format now fmt)
+        file-name (str "messages_" now-str ".txt")
+        messages-str (json/generate-string messages)]
+    (spit file-name messages-str)
+    (println)
+    (println "[" file-name "saved. ]")))
+
 (defn chat [messages]
   (let [{:keys [base-url api-key-env model reasoning-effort]} options
         url (str "https://" base-url "/v1/chat/completions")
@@ -109,25 +119,6 @@
                     (recur (inc i) messages+user+assistant+tool*))))]
           (recur messages+user+assistant+tools))))))
 
-(defn input-save-stop [prompt-str & messages]
-  (print prompt-str)
-  (flush)
-  (if-let [line (read-line)]
-    line
-    (do (if messages
-          (let [now (LocalDateTime/now)
-                fmt (DateTimeFormatter/ofPattern "yyyyMMdd_HHmmss")
-                now-str (.format now fmt)
-                file-name (str "messages_" now-str ".txt")
-                messages-str (json/generate-string messages)]
-            (spit file-name messages-str)
-            (println)
-            (println "[" file-name "saved. ]")
-            (when (:save-stop options)
-              (System/exit 1)))
-          (println "[ No new messages to save. ]"))
-        (input-save-stop prompt-str))))
-
 (defn run-tool-call [{:keys [id]
                       {:keys [name arguments]} :function}
                      messages]
@@ -138,13 +129,24 @@
       (println cmd)
       (input-save-stop ">>> [ Enter ] " messages))
     (let [{:keys [out err]} (sh/sh "bash" "-lc" cmd)
-          result (str out err)
-          tool-message {:role "tool"
-                        :tool_call_id id
-                        :content result}]
+          result (str out err)]
       (when confirm-tool-call?
         (println result))
-      tool-message)))
+      {:role "tool"
+       :tool_call_id id
+       :content result})))
+
+(defn input-save-stop [prompt-str & messages]
+  (print prompt-str)
+  (flush)
+  (if-let [line (read-line)]
+    line
+    (do (if messages
+          (do (save! messages)
+              (when (:save-stop options)
+                (System/exit 1)))
+          (println "[ No new messages to save. ]"))
+        (input-save-stop prompt-str))))
 
 (defn -main [& args]
   ((parse-options args)
