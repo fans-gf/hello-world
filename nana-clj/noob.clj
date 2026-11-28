@@ -148,9 +148,8 @@
                 (if (= i n)
                   messages+user+assistant+tool
                   (let [tool-call (tool_calls i)
-                        tool-message (run-tool-call tool-call messages+user+assistant+tool)
-                        messages+user+assistant+tool* (conj messages+user+assistant+tool tool-message)]
-                    (recur (inc i) messages+user+assistant+tool*))))]
+                        tool-message (run-tool-call tool-call messages+user+assistant+tool)]
+                    (recur (inc i) (conj messages+user+assistant+tool tool-message)))))]
           (recur messages+user+assistant+tools))))))
 
 (defn -main [& args]
