@@ -24,8 +24,8 @@
             [clojure.tools.cli :as cli]))
 
 (declare cli-options options parse-options)
-(declare system-prompt run-bash-cmd-tool input-save-stop)
-(declare run-agent chat run-tool-call)
+(declare system-prompt run-bash-cmd-tool chat)
+(declare run-agent input-save-stop run-tool-call)
 
 (def cli-options
   [["-b" "--base-url BASE_URL" "[ required ]" :missing "Missing: --base-url"]
@@ -69,24 +69,21 @@
                            :properties {:cmd {:type "string"}}
                            :required ["cmd"]}}})
 
-(defn input-save-stop [prompt-str & messages]
-  (print prompt-str)
-  (flush)
-  (if-let [line (read-line)]
-    line
-    (do (if messages
-          (let [now (LocalDateTime/now)
-                fmt (DateTimeFormatter/ofPattern "yyyyMMdd_HHmmss")
-                now-str (.format now fmt)
-                file-name (str "messages_" now-str ".txt")
-                messages-str (json/generate-string messages)]
-            (spit file-name messages-str)
-            (println)
-            (println "[" file-name "saved. ]")
-            (when (:save-stop options)
-              (System/exit 1)))
-          (println "[ No new messages to save. ]"))
-        (input-save-stop prompt-str))))
+(defn chat [messages]
+  (let [{:keys [base-url api-key-env model reasoning-effort]} options
+        url (str "https://" base-url "/v1/chat/completions")
+        api-key (System/getenv api-key-env)
+        auth-token (str "Bearer " api-key)]
+    (http/post url
+               {:headers {:authorization auth-token}
+                :cookie-policy :none
+                :content-type :json
+                :decompress-body false
+                :as :json
+                :form-params {:model model
+                              :reasoning_effort reasoning-effort
+                              :tools [run-bash-cmd-tool]
+                              :messages messages}})))
 
 (defn run-agent [messages]
   (loop [messages+user (let [user-prompt (input-save-stop "> " messages)
@@ -112,21 +109,24 @@
                     (recur (inc i) messages+user+assistant+tool*))))]
           (recur messages+user+assistant+tools))))))
 
-(defn chat [messages]
-  (let [{:keys [base-url api-key-env model reasoning-effort]} options
-        url (str "https://" base-url "/v1/chat/completions")
-        api-key (System/getenv api-key-env)
-        auth-token (str "Bearer " api-key)]
-    (http/post url
-               {:headers {:authorization auth-token}
-                :cookie-policy :none
-                :content-type :json
-                :decompress-body false
-                :as :json
-                :form-params {:model model
-                              :reasoning_effort reasoning-effort
-                              :tools [run-bash-cmd-tool]
-                              :messages messages}})))
+(defn input-save-stop [prompt-str & messages]
+  (print prompt-str)
+  (flush)
+  (if-let [line (read-line)]
+    line
+    (do (if messages
+          (let [now (LocalDateTime/now)
+                fmt (DateTimeFormatter/ofPattern "yyyyMMdd_HHmmss")
+                now-str (.format now fmt)
+                file-name (str "messages_" now-str ".txt")
+                messages-str (json/generate-string messages)]
+            (spit file-name messages-str)
+            (println)
+            (println "[" file-name "saved. ]")
+            (when (:save-stop options)
+              (System/exit 1)))
+          (println "[ No new messages to save. ]"))
+        (input-save-stop prompt-str))))
 
 (defn run-tool-call [{:keys [id]
                       {:keys [name arguments]} :function}
